@@ -24,7 +24,7 @@ Route::group(['prefix'=>'students'],function(){
     Route::post('/register','StudentController@register');
     Route::get('/detail/{id}','StudentController@detail');
     Route::post('/update/{id}','StudentController@update');
-    Route::delete('/delete/{id}','StudentController@destroy');
+    Route::delete('/delete/{id}','StudentController@asdf');
 });
 
 

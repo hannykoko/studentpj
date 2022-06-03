@@ -30,7 +30,7 @@ class StudentRequest extends FormRequest
             'name' => 'required|alpha_spaces',
             'father_name' => 'alpha_spaces',
             'nrc_number' => 'required|max:40',
-            'phone_no' => 'required|max:30',
+            'phone_no' => 'regex:/(^[0-9]{9,11}$)/u',
             'email' => 'required|email',
             'gender' => 'required|between:1,2',
             'date_of_birth' => 'date',

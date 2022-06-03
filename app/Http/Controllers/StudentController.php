@@ -15,30 +15,30 @@ class StudentController extends Controller
 {
     /**
      * Display a listing of the resource.
-     *
+     * @author Hanny Ko Ko
      * @return \Illuminate\Http\Response
      */
     public function search()
     {
         try {
-            $search = request()->search;
-            $type = request()->type;
+            $option = request()->option;
+            $input = request()->input;
         
-            switch ($type) {
+            switch ($option) {
                 case 0:
-                    $students = Student::where ( "name", "LIKE", "%" . $search . "%" )->orWhere("email", "LIKE", "%" . $search . "%" )->orWhere("student_id", "LIKE", "%" . $search . "%" )->orWhere("career_path", "LIKE", "%" . $search . "%" )->paginate(10);
+                    $students = Student::where ( "name", "LIKE", "%" . $input . "%" )->orWhere("email", "LIKE", "%" . $input . "%" )->orWhere("student_id", "LIKE", "%" . $input . "%" )->orWhere("career_path", "LIKE", "%" . $input . "%" )->paginate(10);
                     break;
                 case 1:
-                    $students = Student::where("name", "LIKE", "%" . $search . "%" )->paginate(10);
+                    $students = Student::where("name", "LIKE", "%" . $input . "%" )->paginate(10);
                     break;
                 case 2:
-                    $students = Student::where("student_id", "LIKE", "%" . $search . "%" )->paginate(10);
+                    $students = Student::where("student_id", "LIKE", "%" . $input . "%" )->paginate(10);
                     break;
                 case 3:
-                    $students = Student::where ( "name", "LIKE", "%" . $search . "%" )->paginate(10);
+                    $students = Student::where ( "name", "LIKE", "%" . $input . "%" )->paginate(10);
                     break;
                 case 4:
-                    $students = Student::where ( "email", "LIKE", "%" . $search . "%" )->paginate(10);
+                    $students = Student::where ( "email", "LIKE", "%" . $input . "%" )->paginate(10);
                     break;
             }
 
@@ -57,7 +57,7 @@ class StudentController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
+     * @author Hanny Ko Ko
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
@@ -77,25 +77,11 @@ class StudentController extends Controller
             $last_student = DB::table('students')->latest()->first();
            
             $new_student_id = $last_student ? ++$last_student->student_id:'10001';
-            // dd($new_student_id);
-            // $new_student_data = [
-            //     'student_id' => $new_student_id,
-            //     'name' => $request->name,
-            //     'father_name' => $request->father_name,
-            //     'nrc_number' => $request->nrc_number,
-            //     'phone_no' => $request->phone_no,
-            //     'email' => $request->email,
-            //     'gender' => $request->gender,
-            //     'date_of_birth' => $request->date_of_birth,
-            //     'avatar' => isset($fileNameToStore) ? $fileNameToStore : null ,
-            //     'address' => $request->address,
-            //     'career_path' => isset($request->career_path) ? $request->career_path : '1' ,
-            //     'created_emp' => $request->created_emp ,
-            //     'updated_emp' => $request->updated_emp
-            // ];
             
             $new_student_data = $request->validated();
-            $new_student_data['student_id'] = $new_student_id;
+            $new_student_data['student_id'] = $new_student_id; 
+            $new_student_data['avatar'] = $fileNameToStore?$fileNameToStore:null;
+            
             // return $new_student_data;
             Student::insert($new_student_data);
 
@@ -127,7 +113,7 @@ class StudentController extends Controller
 
     /**
      * Display the specified resource.
-     *
+     * @author Hanny Ko Ko
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -159,7 +145,7 @@ class StudentController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
+     * @author Hanny Ko Ko
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -171,7 +157,7 @@ class StudentController extends Controller
             if($student){
                 DB::beginTransaction();
                 if($request->hasFile('avatar')){#image upload
-                    unlink(storage_path('app/crud/'.$student->avatar)); #delete old avatar
+                    unlink(storage_path('app/'.$student->avatar)); #delete old avatar
                     $file = $request->file('avatar');
                     $filenameWithExt = $request->file('avatar')->getClientOriginalName();
                     $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
@@ -193,7 +179,9 @@ class StudentController extends Controller
                 //     'created_emp' => '11111',
                 //     'updated_emp' => '11111'
                 // ];
+
                 $update_student_data = $request->validated();
+                
                 DB::table('students')->update($update_student_data);
 
                 #student_skill create
@@ -227,24 +215,29 @@ class StudentController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
+     * @author Hanny Ko Ko
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function asdf($id)
     {
-        $StudentExists =  DB::table('students')->whereNull('deleted_at')->where('id',$id)->exists();
-        if($StudentExists){
+
+        // DB::table('students')->delete($id);
+        // return response()->json(['status'=> 'OK', 'message'=>'deleted fguyfggcfsuccessfully'],200);
+        $student = Student::find($id);
+        if($student){
             // dd('found id');
-            DB::beginTransaction();
+        
             try{
-                $student = Student::find($id);
-                if($student){
-                unlink(storage_path('app/crud/'.$student->avatar));
+               
+                // unlink(storage_path('app/'.$student->avatar));
                 Student_skill::where('student_id',$student->student_id)->delete();
+                // DB::enableQueryLog();
                 $student->delete();
+                DB::raw("update `students` set `deleted_at` = ".date('Y-m-d H:i:s').", `students`.`updated_at` = ".date('Y-m-d H:i:s')." where `id` = `$id`");
+                // dd(DB::getQueryLog());
                 return response()->json(['status'=> 'OK', 'message'=>'deleted successfully'],200);
-                }
+               
             }catch(Exception $e){
                 Log::debug($e->getMessage());
                 return response()->json(['status'=> 'NG', 'message'=>'Fail to delete'],200);
