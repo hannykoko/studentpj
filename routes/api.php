@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::group(['prefix'=>'students'],function(){
-    Route::get('/search/{option}/{input}','StudentController@search');
+    Route::get('/search','StudentController@search');
     Route::post('/register','StudentController@register');
     Route::get('/detail/{id}','StudentController@detail');
     Route::post('/update/{id}','StudentController@update');
